@@ -1,32 +1,44 @@
 import sys
 
-import joblib
-import numpy as np
 import pandas as pd
+
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.metrics import (
+    f1_score,
+    accuracy_score,
+    confusion_matrix,
+    classification_report,
+    log_loss,
+    roc_auc_score,
+    roc_curve,
+    precision_score,
+    recall_score,
+    RocCurveDisplay,
+    ConfusionMatrixDisplay
+)
+
+
 
 sys.path.append("..")
-from utility import plot_settings
-from utility.visualize import plot_predicted_vs_true, plot_residuals, regression_scatter
 
 # --------------------------------------------------------------
 # Load data
 # --------------------------------------------------------------
 
-bike_data = pd.read_pickle("../../data/processed/bike_data_processed.pkl")
-target = "rentals"
+df = pd.read_csv(r"C:\Users\beyon\Documents\DS\DS_project_2\data\processed\df_processed.csv")
+df.drop(df.columns[0], axis=1)
+target = "Survived"
 
 # --------------------------------------------------------------
 # Train test split
 # --------------------------------------------------------------
 
-X = bike_data.drop(target, axis=1)
-y = bike_data[target]
+X = df.drop(target, axis=1)
+y = df[target]
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
 
@@ -35,7 +47,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
 # --------------------------------------------------------------
 
 # Define preprocessing for numeric columns (scale them)
-numeric_features = X.select_dtypes(include=["float"]).columns
+numeric_features = X.select_dtypes(include=["float64", "int64"]).columns
 numeric_transformer = Pipeline(steps=[("scaler", StandardScaler())])
 
 # Define preprocessing for categorical features (encode them)
@@ -54,7 +66,7 @@ preprocessor = ColumnTransformer(
 
 # Build the pipeline
 pipeline = Pipeline(
-    steps=[("preprocessor", preprocessor), ("regressor", RandomForestRegressor())]
+    steps=[("preprocessor", preprocessor), ("classfier", RandomForestClassifier())]
 )
 
 # fit the pipeline to train the model on the training set
@@ -68,29 +80,28 @@ model = pipeline.fit(X_train, y_train)
 predictions = model.predict(X_test)
 
 # Display metrics
-rmse = np.sqrt(mean_squared_error(y_test, predictions))
-r2 = r2_score(y_test, predictions)
+accuracy = accuracy_score(y_test, predictions)
 
-print("RMSE:", rmse)
-print("R2:", r2)
 
-# Visualize results
-plot_predicted_vs_true(y_test, predictions)
-regression_scatter(y_test, predictions)
-plot_residuals(y_test, predictions, bins=15)
+print("Accuracy:", accuracy)
 
-# --------------------------------------------------------------
-# Export model
-# --------------------------------------------------------------
+# # Visualize results
+# plot_predicted_vs_true(y_test, predictions)
+# regression_scatter(y_test, predictions)
+# plot_residuals(y_test, predictions, bins=15)
 
-ref_cols = list(X.columns)
+# # --------------------------------------------------------------
+# # Export model
+# # --------------------------------------------------------------
 
-"""
-In Python, you can use joblib or pickle to serialize (and deserialize) an object structure into (and from) a byte stream. 
-In other words, it's the process of converting a Python object into a byte stream that can be stored in a file.
+# ref_cols = list(X.columns)
 
-https://joblib.readthedocs.io/en/latest/generated/joblib.dump.html
+# """
+# In Python, you can use joblib or pickle to serialize (and deserialize) an object structure into (and from) a byte stream. 
+# In other words, it's the process of converting a Python object into a byte stream that can be stored in a file.
 
-"""
+# https://joblib.readthedocs.io/en/latest/generated/joblib.dump.html
 
-joblib.dump(value=[model, ref_cols, target], filename="../../models/model.pkl")
+# """
+
+# joblib.dump(value=[model, ref_cols, target], filename="../../models/model.pkl")
