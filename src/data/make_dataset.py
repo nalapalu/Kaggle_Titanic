@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import missingno
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,16 +10,18 @@ import seaborn as sns
 
 df_1 = pd.read_csv("../../data/raw/train.csv")
 # df.info()
-# df.isnull().sum()
+# df.isnull().sum().sort_values(ascending = False)
 # df.nunique()
 # df.describe()
+# missingno.matrix(df_1)
+# train[['Sex', 'Survived']].groupby('Sex', as_index = False).mean().sort_values(by = 'Survived', ascending = False)
 
 is_embarked = df_1['Embarked'].value_counts().idxmax()
 df_1["Embarked"].replace(np.nan, is_embarked, inplace=True)
 
 mean_age = df_1['Age'].astype('float').mean(axis=0)
 df_1["Age"].replace(np.nan, mean_age, inplace=True)
-df_1.isnull().sum()
+df_1.isnull().sum().sort_values(ascending = False)
 
 # df_1['Cabin'].unique()
 df_1["Cabin"].replace(np.nan,'NC', inplace=True)
@@ -60,6 +63,14 @@ df.info()
 # plt.tight_layout()
 # plt.show()
 
+# sns.barplot(x = 'Sex', y = 'Survived', data = df_1)
+# plt.ylabel('Survival Probability')
+# plt.title('Survival Probability by Gender')
+
+# g = sns.factorplot(x = 'Pclass', y = 'Survived', hue = 'Sex', data = train, kind = 'bar')
+# g.despine(left = True)
+# plt.ylabel('Survival Probability')
+# plt.title('Survival Probability by Sex and Passenger Class')
 
 # --------------------------------------------------------------
 # Export dataset

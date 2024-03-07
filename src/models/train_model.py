@@ -1,12 +1,24 @@
 import sys
 
 import pandas as pd
-
+from sklearn.calibration import LinearSVC
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
+from catboost import CatBoostClassifier
+from sklearn.naive_bayes import GaussianNB
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LogisticRegression, Perceptron, SGDClassifier
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_val_score
+
+import joblib
 from sklearn.metrics import (
     f1_score,
     accuracy_score,
@@ -20,6 +32,7 @@ from sklearn.metrics import (
     RocCurveDisplay,
     ConfusionMatrixDisplay
 )
+from sklearn.tree import DecisionTreeClassifier
 
 
 
@@ -29,15 +42,15 @@ sys.path.append("..")
 # Load data
 # --------------------------------------------------------------
 
-df = pd.read_csv(r"C:\Users\beyon\Documents\DS\DS_project_2\data\processed\df_processed.csv")
-df.drop(df.columns[0], axis=1)
+df = pd.read_csv("../../data/processed/df_processed.csv")
+df = df.drop(df.columns[0], axis=1)
 target = "Survived"
 
 # --------------------------------------------------------------
 # Train test split
 # --------------------------------------------------------------
 
-X = df.drop(target, axis=1)
+X = df.drop([target,'PassengerId'], axis=1)
 y = df[target]
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
@@ -64,9 +77,61 @@ preprocessor = ColumnTransformer(
     ]
 )
 
+
+# # --------------------------------------------------------------
+# # Testing different models
+# # --------------------------------------------------------------
+
+classifiers = [
+    RandomForestClassifier(),
+    LogisticRegression(),
+    SVC(),
+    KNeighborsClassifier(),
+    GaussianNB(),
+    Perceptron(),
+    LinearSVC(),
+    SGDClassifier(),
+    DecisionTreeClassifier(),
+    CatBoostClassifier()
+]
+
+accuracy_scores = []
+cv_scores = [] 
+for classifier in classifiers:
+    # Build the pipeline for the current classifier
+    pipeline = Pipeline(
+        steps=[("preprocessor", preprocessor), ("classifier", classifier)]
+    )
+
+    # Fit the pipeline to train the model on the training set
+    model = pipeline.fit(X_train, y_train)
+
+    # Evaluate the model
+    # Get predictions
+    predictions = model.predict(X_test)
+
+    # Display metrics
+    accuracy = accuracy_score(y_test, predictions)
+    accuracy_scores.append((classifier.__class__.__name__, accuracy))
+    
+    # Compute cross-validation scores
+    scores = cross_val_score(pipeline, X_train, y_train, cv=5)
+    cv_scores.append((classifier.__class__.__name__, scores.mean()))
+
+df_accuracy = pd.DataFrame(accuracy_scores, columns=['Classifier', 'Accuracy'])
+df_CVscore = pd.DataFrame(cv_scores, columns=['Classifier', 'CV_score'])
+
+
+df_accuracy.sort_values(by = 'Accuracy', ascending = False, ignore_index = True)
+df_CVscore.sort_values(by = 'CV_score', ascending = False, ignore_index = True)
+
+# --------------------------------------------------------------
+# Testing best models
+# --------------------------------------------------------------
+
 # Build the pipeline
 pipeline = Pipeline(
-    steps=[("preprocessor", preprocessor), ("classfier", RandomForestClassifier())]
+    steps=[("preprocessor", preprocessor), ("classfier", KNeighborsClassifier())]
 )
 
 # fit the pipeline to train the model on the training set
@@ -81,8 +146,6 @@ predictions = model.predict(X_test)
 
 # Display metrics
 accuracy = accuracy_score(y_test, predictions)
-
-
 print("Accuracy:", accuracy)
 
 # # Visualize results
@@ -90,18 +153,18 @@ print("Accuracy:", accuracy)
 # regression_scatter(y_test, predictions)
 # plot_residuals(y_test, predictions, bins=15)
 
-# # --------------------------------------------------------------
-# # Export model
-# # --------------------------------------------------------------
+# --------------------------------------------------------------
+# Export model
+# --------------------------------------------------------------
 
-# ref_cols = list(X.columns)
+ref_cols = list(X.columns)
 
-# """
-# In Python, you can use joblib or pickle to serialize (and deserialize) an object structure into (and from) a byte stream. 
-# In other words, it's the process of converting a Python object into a byte stream that can be stored in a file.
+"""
+In Python, you can use joblib or pickle to serialize (and deserialize) an object structure into (and from) a byte stream. 
+In other words, it's the process of converting a Python object into a byte stream that can be stored in a file.
 
-# https://joblib.readthedocs.io/en/latest/generated/joblib.dump.html
+https://joblib.readthedocs.io/en/latest/generated/joblib.dump.html
 
-# """
+"""
 
 # joblib.dump(value=[model, ref_cols, target], filename="../../models/model.pkl")
