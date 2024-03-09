@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.calibration import LinearSVC
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, train_test_split, StratifiedKFold
 from catboost import CatBoostClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.pipeline import Pipeline
@@ -42,16 +42,17 @@ sys.path.append("..")
 # Load data
 # --------------------------------------------------------------
 
-df = pd.read_csv("../../data/processed/df_processed.csv")
-df = df.drop(df.columns[0], axis=1)
+train = pd.read_csv("../../data/processed/train.csv")
+train = train.drop(train.columns[0], axis=1)
+
 target = "Survived"
 
 # --------------------------------------------------------------
 # Train test split
 # --------------------------------------------------------------
 
-X = df.drop([target,'PassengerId'], axis=1)
-y = df[target]
+X = train.drop([target], axis=1)
+y = train[target]
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
 
@@ -118,12 +119,11 @@ for classifier in classifiers:
     scores = cross_val_score(pipeline, X_train, y_train, cv=5)
     cv_scores.append((classifier.__class__.__name__, scores.mean()))
 
-df_accuracy = pd.DataFrame(accuracy_scores, columns=['Classifier', 'Accuracy'])
-df_CVscore = pd.DataFrame(cv_scores, columns=['Classifier', 'CV_score'])
+train_accuracy = pd.DataFrame(accuracy_scores, columns=['Classifier', 'Accuracy'])
+train_CVscore = pd.DataFrame(cv_scores, columns=['Classifier', 'CV_score'])
 
-
-df_accuracy.sort_values(by = 'Accuracy', ascending = False, ignore_index = True)
-df_CVscore.sort_values(by = 'CV_score', ascending = False, ignore_index = True)
+train_accuracy.sort_values(by = 'Accuracy', ascending = False, ignore_index = True)
+train_CVscore.sort_values(by = 'CV_score', ascending = False, ignore_index = True)
 
 # --------------------------------------------------------------
 # Testing best models
@@ -131,7 +131,7 @@ df_CVscore.sort_values(by = 'CV_score', ascending = False, ignore_index = True)
 
 # Build the pipeline
 pipeline = Pipeline(
-    steps=[("preprocessor", preprocessor), ("classfier", KNeighborsClassifier())]
+    steps=[("preprocessor", preprocessor), ("classfier", SVC())]
 )
 
 # fit the pipeline to train the model on the training set
@@ -153,6 +153,12 @@ print("Accuracy:", accuracy)
 # regression_scatter(y_test, predictions)
 # plot_residuals(y_test, predictions, bins=15)
 
+
+# --------------------------------------------------------------
+# Hyper parameter tuning
+# --------------------------------------------------------------
+
+
 # --------------------------------------------------------------
 # Export model
 # --------------------------------------------------------------
@@ -167,4 +173,4 @@ https://joblib.readthedocs.io/en/latest/generated/joblib.dump.html
 
 """
 
-# joblib.dump(value=[model, ref_cols, target], filename="../../models/model.pkl")
+joblib.dump(value=[model, ref_cols, target], filename="../../models/model.pkl")

@@ -1,51 +1,16 @@
-import joblib
-import numpy as np
-import pandas as pd
-from sklearn.metrics import mean_squared_error, r2_score
 import sys
-from sklearn.metrics import (
-    f1_score,
-    accuracy_score,
-    confusion_matrix,
-    classification_report,
-    log_loss,
-    roc_auc_score,
-    roc_curve,
-    precision_score,
-    recall_score,
-    RocCurveDisplay,
-    ConfusionMatrixDisplay
-)
+import joblib
+import pandas as pd
+
 
 sys.path.append("..")
-# from utility import plot_settings
-# from utility.visualize import plot_predicted_vs_true, regression_scatter, plot_residuals
-
 
 # --------------------------------------------------------------
 # Load data
 # --------------------------------------------------------------
 
-df_1 = pd.read_csv("../../data/raw/test.csv")
-# df_1.info()
-# df_1.isnull().sum()
-# df_1.nunique()
-# df_1.describe()
-
-
-mean_age = df_1['Age'].astype('float').mean(axis=0)
-df_1["Age"].replace(np.nan, mean_age, inplace=True)
-
-mean_fare = df_1['Fare'].astype('float').mean(axis=0)
-df_1["Fare"].replace(np.nan, mean_fare, inplace=True)
-
-df_1["Cabin"].replace(np.nan,'NC', inplace=True)
-
-df = df_1.drop(['Name','Ticket'], axis=1)
-
-
-# df.value_counts()
-# df.head()
+test = pd.read_csv("../../data/processed/test.csv")
+# test = test.drop(test.columns[1], axis=1)
 
 # --------------------------------------------------------------
 # Load model
@@ -57,16 +22,20 @@ model, ref_cols, target = joblib.load("../../models/model.pkl")
 # Make predictions
 # --------------------------------------------------------------
 
-X_new = df[ref_cols]
+X_new = test[ref_cols]
 predictions = model.predict(X_new)
 
-results_df = pd.DataFrame({
-    'PassengerId': df_1['PassengerId'],
+test_results = pd.DataFrame({
+    'PassengerId': test['PassengerId'],
     'Survived': predictions
 })
 
 
-results_df.to_csv('../../data/processed/chiran_submission.csv', index=False)
+# accuracy = accuracy_score(test['Survived'], predictions)
+# print("Accuracy:", accuracy)
+
+
+test_results.to_csv('../../data/processed/chiran_submission.csv', index=False)
 
 
 
