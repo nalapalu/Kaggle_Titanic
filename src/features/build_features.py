@@ -7,7 +7,7 @@ import seaborn as sns
 
 train = pd.read_csv("../../data/raw/train.csv")
 test = pd.read_csv("../../data/raw/test.csv")
-combine = pd.read_csv("../../data/interim/combine_cleaned.csv")
+combine = pd.read_csv("../../data/interim/combine_cleaned_new.csv")
 
 # --------------------------------------------------------------
 # EDA 
@@ -85,6 +85,35 @@ combine = pd.read_csv("../../data/interim/combine_cleaned.csv")
 # --------------------------------------------------------------
 # Feature creation
 # --------------------------------------------------------------
+
+
+# create a new feature to extract title names from the Name column
+# normalize the titles
+# map the normalized titles to the current titles 
+# view value counts for the normalized titles
+combine['Title'] = combine.Name.apply(lambda name: name.split(',')[1].split('.')[0].strip())
+normalized_titles = {
+    "Capt":       "Officer",
+    "Col":        "Officer",
+    "Major":      "Officer",
+    "Jonkheer":   "Royalty",
+    "Don":        "Royalty",
+    "Sir" :       "Royalty",
+    "Dr":         "Officer",
+    "Rev":        "Officer",
+    "the Countess":"Royalty",
+    "Dona":       "Royalty",
+    "Mme":        "Mrs",
+    "Mlle":       "Miss",
+    "Ms":         "Mrs",
+    "Mr" :        "Mr",
+    "Mrs" :       "Mrs",
+    "Miss" :      "Miss",
+    "Master" :    "Master",
+    "Lady" :      "Royalty"
+}
+combine.Title = combine.Title.map(normalized_titles)
+print(combine.Title.value_counts())
 
 bins = np.linspace(0,80,5)
 group_names = ['0-20','20-40','40-60','60-80']
