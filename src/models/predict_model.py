@@ -10,7 +10,7 @@ sys.path.append("..")
 # --------------------------------------------------------------
 
 test = pd.read_csv("../../data/processed/test.csv")
-# test = test.drop(test.columns[1], axis=1)
+
 
 # --------------------------------------------------------------
 # Load model
@@ -23,16 +23,13 @@ model, ref_cols, target = joblib.load("../../models/model.pkl")
 # --------------------------------------------------------------
 
 X_new = test[ref_cols]
-predictions = model.predict(X_new)
+predictions = model.predict(X_new).astype(int)
+
 
 test_results = pd.DataFrame({
     'PassengerId': test['PassengerId'],
     'Survived': predictions
 })
-
-
-# accuracy = accuracy_score(test['Survived'], predictions)
-# print("Accuracy:", accuracy)
 
 
 test_results.to_csv('../../data/processed/chiran_submission.csv', index=False)
