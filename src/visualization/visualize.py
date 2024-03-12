@@ -4,6 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+train = pd.read_csv("../../data/raw/train.csv")
+test = pd.read_csv("../../data/raw/test.csv")
 combine = pd.read_csv("../../data/interim/combine_cleaned_new.csv")
 
 # --------------------------------------------------------------
@@ -34,7 +36,7 @@ plt.figure(figsize=(14, len(numerical_columns) * 3))
 for idx, feature in enumerate(numerical_columns, 1):
 	plt.subplot(len(numerical_columns), 2, idx)
 	sns.histplot(combine[feature], kde=True)
-  plt.title(f"{feature} | Skewness: {round(combine[feature].skew(), 2)}")
+plt.title(f"{feature} | Skewness: {round(combine[feature].skew(), 2)}")
 plt.tight_layout()
 plt.show()
 
