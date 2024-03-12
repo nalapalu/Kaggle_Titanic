@@ -31,11 +31,6 @@ test_results = pd.DataFrame({
     'Survived': predictions
 })
 
-# test_results['Survived'] = test_results['Survived'].apply(lambda x: 1 if x == 0 else 0)
-
-# accuracy = accuracy_score(test['Survived'], predictions)
-# print("Accuracy:", accuracy)
-
 
 test_results.to_csv('../../data/processed/chiran_submission.csv', index=False)
 

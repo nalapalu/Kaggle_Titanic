@@ -79,9 +79,9 @@ preprocessor = ColumnTransformer(
 )
 
 
-# # --------------------------------------------------------------
-# # Testing different models
-# # --------------------------------------------------------------
+# --------------------------------------------------------------
+# Testing different models
+# --------------------------------------------------------------
 
 classifiers = [
     RandomForestClassifier(),
@@ -131,14 +131,14 @@ train_CVscore.sort_values(by = 'CV_score', ascending = False, ignore_index = Tru
 
 # Build the pipeline
 pipeline = Pipeline(
-    steps=[("preprocessor", preprocessor), ("classfier", SVC())]
+    steps=[("preprocessor", preprocessor), ("classifier", SVC())]
 )
 
 # fit the pipeline to train the model on the training set
 model = pipeline.fit(X_train, y_train)
 
 # --------------------------------------------------------------
-# Evaluate the model
+# Evaluate the model 
 # --------------------------------------------------------------
 
 # Get predictions
@@ -148,15 +148,36 @@ predictions = model.predict(X_test)
 accuracy = accuracy_score(y_test, predictions)
 print("Accuracy:", accuracy)
 
-# # Visualize results
-# plot_predicted_vs_true(y_test, predictions)
-# regression_scatter(y_test, predictions)
-# plot_residuals(y_test, predictions, bins=15)
-
-
 # --------------------------------------------------------------
 # Hyper parameter tuning
 # --------------------------------------------------------------
+
+param_grid = {
+    'classifier__C': [0.1, 1, 10, 100],  # Penalty parameter C of the error term
+    'classifier__gamma': [0.1, 0.01, 0.001, 0.0001],  # Kernel coefficient for 'rbf'
+    'classifier__kernel': ['linear', 'rbf']  # Kernel type
+}
+
+# Create GridSearchCV instance
+grid_search = GridSearchCV(pipeline, param_grid, cv=5, scoring='accuracy')
+
+# Fit the GridSearchCV instance to perform hyperparameter tuning
+grid_search.fit(X_train, y_train)
+
+# Get the best parameters and best estimator from the GridSearchCV
+best_params = grid_search.best_params_
+best_estimator = grid_search.best_estimator_
+
+# Fit the best estimator on the training data
+best_estimator.fit(X_train, y_train)
+
+# Predictions using the best estimator
+predictions = best_estimator.predict(X_test)
+
+# Display metrics
+accuracy = accuracy_score(y_test, predictions)
+print("Accuracy:", accuracy)
+print("Best Parameters:", best_params)
 
 
 # --------------------------------------------------------------
@@ -165,12 +186,4 @@ print("Accuracy:", accuracy)
 
 ref_cols = list(X.columns)
 
-"""
-In Python, you can use joblib or pickle to serialize (and deserialize) an object structure into (and from) a byte stream. 
-In other words, it's the process of converting a Python object into a byte stream that can be stored in a file.
-
-https://joblib.readthedocs.io/en/latest/generated/joblib.dump.html
-
-"""
-
-joblib.dump(value=[model, ref_cols, target], filename="../../models/model.pkl")
+joblib.dump(value=[best_estimator, ref_cols, target], filename="../../models/model.pkl")

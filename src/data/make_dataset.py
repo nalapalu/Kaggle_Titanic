@@ -14,7 +14,6 @@ test = pd.read_csv("../../data/raw/test.csv")
 
 combine = train.append(test, ignore_index=True)
 combine.head()
-
 combine.info()
 combine.isnull().sum().sort_values(ascending = False)
 combine.nunique()
