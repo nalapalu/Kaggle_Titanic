@@ -51,6 +51,8 @@ plt.show()
 sns.barplot(x = 'Parch', y ='Survived', data = train)
 plt.ylabel('Survival Probability')
 plt.title('Survival Probability by Parch')
+plt.ylim(0,1)
+plt.show()
 
 # Mean of survival by Pclass
 sns.barplot(x = 'Pclass', y ='Survived', data = train)
