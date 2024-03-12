@@ -1,3 +1,3 @@
-## Data Science Project Template
+## Kaggle Titanic Competition.
 
-You can use this template to structure your Python data science projects. It is based on [Cookie Cutter Data Science](https://drivendata.github.io/cookiecutter-data-science/).
+Accuracy: 0.7799
