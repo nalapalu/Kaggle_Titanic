@@ -12,7 +12,7 @@ import seaborn as sns
 train = pd.read_csv("../../data/raw/train.csv")
 test = pd.read_csv("../../data/raw/test.csv")
 
-combine = train.append(test, ignore_index=True)
+combine = pd.concat([train, test], ignore_index=True)
 combine.head()
 combine.info()
 combine.isnull().sum().sort_values(ascending = False)
@@ -51,9 +51,9 @@ print(combine.Title.value_counts())
 # group by Sex, Pclass, and Title 
 # view the median Age by the grouped features 
 # apply the grouped median value on the Age NaN
-grouped = combine.groupby(['Sex','Pclass', 'Title'])  
-grouped.Age.median()
-combine.Age = grouped.Age.apply(lambda x: x.fillna(x.median()))
+grouped = combine.groupby(['Sex', 'Pclass', 'Title'])
+combine['Age'] = grouped['Age'].transform(lambda x: x.fillna(x.median()))
+
 
 
 # fill Cabin NaN with U for unknown
